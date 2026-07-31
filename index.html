@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live P2P Screen Share</title>
-  <!-- Load PeerJS Library from CDN -->
+  <title>6-Digit Code Screen Share</title>
+  <!-- PeerJS Library CDN -->
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <style>
     * { box-sizing: border-box; }
@@ -28,6 +28,21 @@
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
       margin-bottom: 20px;
     }
+    .code-display {
+      background: #0f172a;
+      border: 2px dashed #3b82f6;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .code-number {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: 6px;
+      color: #38bdf8;
+      font-family: monospace;
+    }
     .controls {
       display: flex;
       gap: 12px;
@@ -36,16 +51,18 @@
       margin-bottom: 20px;
     }
     input {
-      padding: 10px 14px;
+      padding: 12px 14px;
       border-radius: 6px;
       border: 1px solid #475569;
       background: #0f172a;
       color: #fff;
-      font-size: 16px;
+      font-size: 18px;
+      text-align: center;
+      letter-spacing: 4px;
       flex-grow: 1;
     }
     button {
-      padding: 10px 20px;
+      padding: 12px 20px;
       font-size: 16px;
       font-weight: 600;
       color: #fff;
@@ -56,14 +73,6 @@
       transition: background 0.2s;
     }
     button:hover { background: #1d4ed8; }
-    .status-box {
-      background: #334155;
-      padding: 12px;
-      border-radius: 6px;
-      font-family: monospace;
-      margin-bottom: 15px;
-      word-break: break-all;
-    }
     video {
       width: 100%;
       aspect-ratio: 16 / 9;
@@ -75,18 +84,19 @@
 <body>
 
   <div class="card">
-    <h2>Screen Share (Peer-to-Peer)</h2>
+    <h2>Screen Share (6-Digit Room Code)</h2>
     
-    <div class="status-box">
-      <strong>Your Peer ID:</strong> <span id="my-id">Generating ID...</span>
+    <div class="code-display">
+      <div style="font-size: 14px; color: #94a3b8; margin-bottom: 5px;">YOUR 6-DIGIT CODE</div>
+      <div class="code-number" id="my-id">------</div>
     </div>
 
     <div class="controls">
       <!-- Host Button -->
       <button id="share-btn">1. Share My Screen</button>
       
-      <!-- Viewer Controls -->
-      <input type="text" id="remote-id-input" placeholder="Enter Host Peer ID">
+      <!-- Viewer Inputs -->
+      <input type="text" id="remote-id-input" placeholder="Enter 6-digit code" maxlength="6">
       <button id="connect-btn">2. Watch Stream</button>
     </div>
 
@@ -95,18 +105,31 @@
   </div>
 
   <script>
-    // Initialize PeerJS (Connects to free PeerJS cloud signaling server)
-    const peer = new Peer();
+    // Helper function to generate a random 6-digit number string
+    function generate6DigitCode() {
+      return Math.floor(100000 + Math.random() * 900000).toString();
+    }
 
-    const myIdSpan = document.getElementById('my-id');
+    const sixDigitId = generate6DigitCode();
+    const myIdDisplay = document.getElementById('my-id');
     const shareBtn = document.getElementById('share-btn');
     const connectBtn = document.getElementById('connect-btn');
     const remoteIdInput = document.getElementById('remote-id-input');
     const videoElement = document.getElementById('remote-video');
 
-    // Display assigned Peer ID
+    // Initialize PeerJS with the generated 6-digit numerical ID
+    const peer = new Peer(sixDigitId);
+
     peer.on('open', (id) => {
-      myIdSpan.innerText = id;
+      myIdDisplay.innerText = id;
+    });
+
+    // Handle collision if the 6-digit ID is already taken by someone else on the PeerJS cloud server
+    peer.on('error', (err) => {
+      if (err.type === 'unavailable-id') {
+        alert('Code collision occurred. Reloading to get a fresh code...');
+        window.location.reload();
+      }
     });
 
     // 1. HOST: Start Screen Sharing
@@ -117,39 +140,38 @@
           audio: true
         });
 
-        // Show local preview
+        // Show local screen preview
         videoElement.srcObject = stream;
 
-        // Answer incoming viewer connections with the screen stream
+        // Listen for incoming viewer connections
         peer.on('call', (call) => {
           call.answer(stream);
         });
 
-        alert("Screen sharing started! Send your Peer ID to the other device so they can connect.");
+        alert(`Screen sharing live! Share your 6-digit code (${sixDigitId}) with the other device.`);
       } catch (err) {
         console.error("Failed to share screen:", err);
       }
     });
 
-    // 2. VIEWER: Connect to Host
+    // 2. VIEWER: Connect to Host using the 6-digit Code
     connectBtn.addEventListener('click', () => {
-      const remoteId = remoteIdInput.value.trim();
-      if (!remoteId) {
-        alert("Please enter the Host's Peer ID first.");
+      const targetCode = remoteIdInput.value.trim();
+      if (targetCode.length !== 6) {
+        alert("Please enter a valid 6-digit code.");
         return;
       }
 
-      // Call the host without sending a local video stream
-      const call = peer.call(remoteId, null);
+      // Call host using the entered 6-digit code
+      const call = peer.call(targetCode, null);
 
       call.on('stream', (remoteStream) => {
-        // Display host's incoming screen stream
         videoElement.srcObject = remoteStream;
       });
 
       call.on('error', (err) => {
         console.error("Connection error:", err);
-        alert("Failed to connect. Check the ID and try again.");
+        alert("Could not connect to code: " + targetCode);
       });
     });
   </script>
