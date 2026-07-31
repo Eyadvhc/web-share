@@ -1,4 +1,7 @@
-const STORAGE_KEY = "eyad_local_links_store";
+// Public Shared Relay Storage Endpoint (Allows open write/read for all visitors)
+const PUBLIC_ROOM = "public_web_share_room_8899";
+const API_URL = `https://kvdb.io/shared_app_data/${PUBLIC_ROOM}`;
+
 let linksArray = [];
 
 const linkInput = document.getElementById('linkInput');
@@ -7,37 +10,43 @@ const btnAdd = document.getElementById('btnAdd');
 const btnDeleteLatest = document.getElementById('btnDeleteLatest');
 const btnDeleteAll = document.getElementById('btnDeleteAll');
 
-// 1. Load Links from Local Storage on Startup
-function loadLocalLinks() {
-  const localData = localStorage.getItem(STORAGE_KEY);
-  if (localData) {
-    try {
-      linksArray = JSON.parse(localData);
-    } catch (e) {
-      linksArray = [];
+// 1. Fetch Links from Public Relay
+async function fetchPublicLinks() {
+  try {
+    const res = await fetch(`${API_URL}?t=${Date.now()}`);
+    if (res.ok) {
+      const data = await res.json();
+      linksArray = Array.isArray(data) ? data : [];
+      renderLinks();
     }
-  } else {
-    linksArray = [];
+  } catch (err) {
+    console.error("Sync error:", err);
   }
-  renderLinks();
 }
 
-// 2. Save Links to Local Storage
-function saveLocalLinks() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(linksArray));
-  renderLinks();
+// 2. Publish Updated List to Public Relay for Everyone
+async function publishLinksToAll() {
+  renderLinks(); // Instant local UI update
+  try {
+    await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(linksArray)
+    });
+  } catch (err) {
+    console.error("Publish error:", err);
+  }
 }
 
-// 3. Render Items to the DOM with Copy and Delete Actions
+// 3. Render Links Feed with Copy & Delete Features
 function renderLinks() {
   linksList.innerHTML = '';
 
   if (!linksArray || linksArray.length === 0) {
-    linksList.innerHTML = '<div class="empty-state">No links saved locally.</div>';
+    linksList.innerHTML = '<div class="empty-state">No public links shared yet. Be the first!</div>';
     return;
   }
 
-  // Display newest links first
   [...linksArray].reverse().forEach((item, originalIndex) => {
     const realIndex = linksArray.length - 1 - originalIndex;
     const div = document.createElement('div');
@@ -64,7 +73,6 @@ function renderLinks() {
           copyBtn.style.backgroundColor = '#0284c7';
         }, 1500);
       }).catch(() => {
-        // Fallback copy method
         const textArea = document.createElement('textarea');
         textArea.value = item.text;
         document.body.appendChild(textArea);
@@ -85,39 +93,35 @@ function renderLinks() {
   });
 }
 
-// Add Link
+// Actions
 function addLink() {
   const text = linkInput.value.trim();
   if (!text) return;
 
   linksArray.push({ text: text, id: Date.now() });
   linkInput.value = '';
-  saveLocalLinks();
+  publishLinksToAll();
 }
 
-// Delete Single Link by Index
 function deleteLinkByIndex(index) {
   linksArray.splice(index, 1);
-  saveLocalLinks();
+  publishLinksToAll();
 }
 
-// Delete Latest Link
 function deleteLatestLink() {
   if (linksArray.length > 0) {
     linksArray.pop();
-    saveLocalLinks();
+    publishLinksToAll();
   }
 }
 
-// Delete All Links
 function deleteAllLinks() {
-  if (confirm("Are you sure you want to delete all locally saved links?")) {
+  if (confirm("Are you sure you want to delete all public links for everyone?")) {
     linksArray = [];
-    saveLocalLinks();
+    publishLinksToAll();
   }
 }
 
-// Event Listeners
 btnAdd.addEventListener('click', addLink);
 btnDeleteLatest.addEventListener('click', deleteLatestLink);
 btnDeleteAll.addEventListener('click', deleteAllLinks);
@@ -126,5 +130,6 @@ linkInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') addLink();
 });
 
-// Initial Load
-loadLocalLinks();
+// Auto-sync: Load immediately and poll every 3 seconds so new posts from any user appear live!
+fetchPublicLinks();
+setInterval(fetchPublicLinks, 3000);

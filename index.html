@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shared Link Hub</title>
+  <title>Public Link Sharing Hub</title>
   <style>
     * {
       box-sizing: border-box;
@@ -162,27 +162,26 @@
   <div class="dashboard">
     <!-- LEFT COLUMN -->
     <div class="column">
-      <h2>Add & Manage Links</h2>
+      <h2>Share a Link with Everyone</h2>
       <div class="input-box">
-        <input type="text" id="linkInput" placeholder="Paste your link or text here..." required />
+        <input type="text" id="linkInput" placeholder="Paste link or text for everyone..." required />
         <div class="button-group">
-          <button class="btn-add" id="btnAdd">Upload Link</button>
+          <button class="btn-add" id="btnAdd">Share Public Link</button>
           <button class="btn-delete-single" id="btnDeleteLatest">Delete Latest Link</button>
-          <button class="btn-delete-all" id="btnDeleteAll">Delete All Links</button>
+          <button class="btn-delete-all" id="btnDeleteAll">Clear All Links</button>
         </div>
       </div>
     </div>
 
     <!-- RIGHT COLUMN -->
     <div class="column">
-      <h2>Shared Links (Plain Text)</h2>
+      <h2>Live Public Feed</h2>
       <div class="links-container" id="linksList">
-        <div class="empty-state">Loading links...</div>
+        <div class="empty-state">Loading public links...</div>
       </div>
     </div>
   </div>
 
-  <!-- Force cache bypass with query param -->
-  <script src="script.js?v=2"></script>
+  <script src="script.js?v=5"></script>
 </body>
 </html>
