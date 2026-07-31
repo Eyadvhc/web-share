@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shared Link Hub</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .dashboard {
+      background-color: #1e293b;
+      width: 100%;
+      max-width: 900px;
+      padding: 28px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard { grid-template-columns: 1fr; }
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      color: #38bdf8;
+      border-bottom: 2px solid #334155;
+      padding-bottom: 8px;
+    }
+
+    .input-box {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background-color: #0f172a;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    input[type="text"]:focus { border-color: #38bdf8; }
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    button:hover { opacity: 0.9; }
+    .btn-add { background-color: #0284c7; color: white; }
+    .btn-delete-single { background-color: #eab308; color: #0f172a; }
+    .btn-delete-all { background-color: #ef4444; color: white; }
+
+    .links-container {
+      height: 350px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 6px;
+    }
+
+    .links-container::-webkit-scrollbar { width: 6px; }
+    .links-container::-webkit-scrollbar-track { background: #0f172a; border-radius: 4px; }
+    .links-container::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+    .link-item {
+      background-color: #0f172a;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .plain-text-link {
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      word-break: break-all;
+      user-select: all;
+    }
+
+    .action-btns {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn-item-copy {
+      background-color: #0284c7;
+      color: white;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-item-del {
+      background-color: #dc2626;
+      color: white;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="dashboard">
+    <!-- LEFT COLUMN -->
+    <div class="column">
+      <h2>Add & Manage Links</h2>
+      <div class="input-box">
+        <input type="text" id="linkInput" placeholder="Paste your link or text here..." required />
+        <div class="button-group">
+          <button class="btn-add" id="btnAdd">Upload Link</button>
+          <button class="btn-delete-single" id="btnDeleteLatest">Delete Latest Link</button>
+          <button class="btn-delete-all" id="btnDeleteAll">Delete All Links</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="column">
+      <h2>Shared Links (Plain Text)</h2>
+      <div class="links-container" id="linksList">
+        <div class="empty-state">Loading links...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Force cache bypass with query param -->
+  <script src="script.js?v=2"></script>
+</body>
+</html>
