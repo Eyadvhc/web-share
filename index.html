@@ -3,185 +3,155 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Public Link Sharing Hub</title>
+  <title>Live P2P Screen Share</title>
+  <!-- Load PeerJS Library from CDN -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
+    * { box-sizing: border-box; }
     body {
-      background-color: #0f172a;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f172a;
       color: #f8fafc;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      min-height: 100vh;
       padding: 20px;
+      margin: 0;
+      min-height: 100vh;
     }
-
-    .dashboard {
-      background-color: #1e293b;
+    .card {
+      background: #1e293b;
+      padding: 24px;
+      border-radius: 12px;
       width: 100%;
-      max-width: 900px;
-      padding: 28px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
+      max-width: 800px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
     }
-
-    @media (max-width: 768px) {
-      .dashboard { grid-template-columns: 1fr; }
-    }
-
-    .column {
+    .controls {
       display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    h2 {
-      font-size: 1.25rem;
-      color: #38bdf8;
-      border-bottom: 2px solid #334155;
-      padding-bottom: 8px;
-    }
-
-    .input-box {
-      display: flex;
-      flex-direction: column;
       gap: 12px;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 12px 16px;
-      border-radius: 8px;
-      border: 1px solid #334155;
-      background-color: #0f172a;
-      color: #fff;
-      font-size: 0.95rem;
-      outline: none;
-    }
-
-    input[type="text"]:focus { border-color: #38bdf8; }
-
-    .button-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    button {
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
-
-    button:hover { opacity: 0.9; }
-    .btn-add { background-color: #0284c7; color: white; }
-    .btn-delete-single { background-color: #eab308; color: #0f172a; }
-    .btn-delete-all { background-color: #ef4444; color: white; }
-
-    .links-container {
-      height: 350px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding-right: 6px;
-    }
-
-    .links-container::-webkit-scrollbar { width: 6px; }
-    .links-container::-webkit-scrollbar-track { background: #0f172a; border-radius: 4px; }
-    .links-container::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-
-    .link-item {
-      background-color: #0f172a;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: 1px solid #334155;
-      display: flex;
-      justify-content: space-between;
+      flex-wrap: wrap;
       align-items: center;
-      gap: 12px;
+      margin-bottom: 20px;
     }
-
-    .plain-text-link {
-      color: #e2e8f0;
-      font-size: 0.9rem;
+    input {
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #fff;
+      font-size: 16px;
+      flex-grow: 1;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      background: #2563eb;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: #1d4ed8; }
+    .status-box {
+      background: #334155;
+      padding: 12px;
+      border-radius: 6px;
+      font-family: monospace;
+      margin-bottom: 15px;
       word-break: break-all;
-      user-select: all;
     }
-
-    .action-btns {
-      display: flex;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-
-    .btn-item-copy {
-      background-color: #0284c7;
-      color: white;
-      padding: 6px 10px;
-      font-size: 0.75rem;
-      border-radius: 4px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .btn-item-del {
-      background-color: #dc2626;
-      color: white;
-      padding: 6px 10px;
-      font-size: 0.75rem;
-      border-radius: 4px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .empty-state {
-      text-align: center;
-      color: #64748b;
-      font-size: 0.9rem;
-      margin-top: 40px;
+    video {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
 
-  <div class="dashboard">
-    <!-- LEFT COLUMN -->
-    <div class="column">
-      <h2>Share a Link with Everyone</h2>
-      <div class="input-box">
-        <input type="text" id="linkInput" placeholder="Paste link or text for everyone..." required />
-        <div class="button-group">
-          <button class="btn-add" id="btnAdd">Share Public Link</button>
-          <button class="btn-delete-single" id="btnDeleteLatest">Delete Latest Link</button>
-          <button class="btn-delete-all" id="btnDeleteAll">Clear All Links</button>
-        </div>
-      </div>
+  <div class="card">
+    <h2>Screen Share (Peer-to-Peer)</h2>
+    
+    <div class="status-box">
+      <strong>Your Peer ID:</strong> <span id="my-id">Generating ID...</span>
     </div>
 
-    <!-- RIGHT COLUMN -->
-    <div class="column">
-      <h2>Live Public Feed</h2>
-      <div class="links-container" id="linksList">
-        <div class="empty-state">Loading public links...</div>
-      </div>
+    <div class="controls">
+      <!-- Host Button -->
+      <button id="share-btn">1. Share My Screen</button>
+      
+      <!-- Viewer Controls -->
+      <input type="text" id="remote-id-input" placeholder="Enter Host Peer ID">
+      <button id="connect-btn">2. Watch Stream</button>
     </div>
+
+    <!-- Video Element -->
+    <video id="remote-video" autoplay playsinline controls></video>
   </div>
 
-  <script src="script.js?v=5"></script>
+  <script>
+    // Initialize PeerJS (Connects to free PeerJS cloud signaling server)
+    const peer = new Peer();
+
+    const myIdSpan = document.getElementById('my-id');
+    const shareBtn = document.getElementById('share-btn');
+    const connectBtn = document.getElementById('connect-btn');
+    const remoteIdInput = document.getElementById('remote-id-input');
+    const videoElement = document.getElementById('remote-video');
+
+    // Display assigned Peer ID
+    peer.on('open', (id) => {
+      myIdSpan.innerText = id;
+    });
+
+    // 1. HOST: Start Screen Sharing
+    shareBtn.addEventListener('click', async () => {
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: { cursor: "always" },
+          audio: true
+        });
+
+        // Show local preview
+        videoElement.srcObject = stream;
+
+        // Answer incoming viewer connections with the screen stream
+        peer.on('call', (call) => {
+          call.answer(stream);
+        });
+
+        alert("Screen sharing started! Send your Peer ID to the other device so they can connect.");
+      } catch (err) {
+        console.error("Failed to share screen:", err);
+      }
+    });
+
+    // 2. VIEWER: Connect to Host
+    connectBtn.addEventListener('click', () => {
+      const remoteId = remoteIdInput.value.trim();
+      if (!remoteId) {
+        alert("Please enter the Host's Peer ID first.");
+        return;
+      }
+
+      // Call the host without sending a local video stream
+      const call = peer.call(remoteId, null);
+
+      call.on('stream', (remoteStream) => {
+        // Display host's incoming screen stream
+        videoElement.srcObject = remoteStream;
+      });
+
+      call.on('error', (err) => {
+        console.error("Connection error:", err);
+        alert("Failed to connect. Check the ID and try again.");
+      });
+    });
+  </script>
 </body>
 </html>
