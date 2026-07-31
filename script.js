@@ -39,7 +39,7 @@ async function saveLinks() {
   }
 }
 
-// 3. Render items into DOM & hide after 1 second
+// 3. Render items permanently into DOM (No auto-hiding)
 function renderLinks() {
   linksList.innerHTML = '';
 
@@ -57,7 +57,7 @@ function renderLinks() {
     const safeText = document.createTextNode(item.text).textContent;
 
     div.innerHTML = `
-      <span class="plain-text-link" id="link-text-${realIndex}" title="Click or hover to reveal">${safeText}</span>
+      <span class="plain-text-link">${safeText}</span>
       <button class="btn-item-del" data-index="${realIndex}">Delete</button>
     `;
 
@@ -67,20 +67,6 @@ function renderLinks() {
     });
 
     linksList.appendChild(div);
-
-    // Hide text after 1 second (1000 ms)
-    setTimeout(() => {
-      const textElement = document.getElementById(`link-text-${realIndex}`);
-      if (textElement) {
-        textElement.style.filter = "blur(4px)";
-        textElement.style.transition = "filter 0.3s ease";
-        textElement.style.cursor = "pointer";
-
-        // Reveal text on hover or click
-        textElement.addEventListener('mouseenter', () => textElement.style.filter = "none");
-        textElement.addEventListener('mouseleave', () => textElement.style.filter = "blur(4px)");
-      }
-    }, 1000);
   });
 }
 
